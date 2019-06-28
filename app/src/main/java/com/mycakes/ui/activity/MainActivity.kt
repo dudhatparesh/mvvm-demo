@@ -1,4 +1,4 @@
-package com.mycakes.ui
+package com.mycakes.ui.activity
 
 import android.os.Bundle
 import android.view.Menu
@@ -14,6 +14,7 @@ import com.mycakes.data.remote.WebServices
 import com.mycakes.data.repository.CakeRepositoryImpl
 import com.mycakes.ui.adapter.CakeAdapter
 import com.mycakes.ui.adapter.listener.CakeClickListener
+import com.mycakes.ui.dialog.CakeDetailDialog
 import com.mycakes.viewmodel.MainViewModel
 import com.mycakes.viewmodel.factory.MainViewModelFactory
 import kotlinx.android.synthetic.main.activity_main.*
@@ -24,7 +25,8 @@ class MainActivity : AppCompatActivity() {
     lateinit var cakeAdapter: CakeAdapter
     private val cakeClickListener: CakeClickListener = object : CakeClickListener {
         override fun onClick(cake: Cake) {
-
+            val cakeDetailDialog = CakeDetailDialog.instance(cake)
+            cakeDetailDialog.show(supportFragmentManager,"CAKE_DETAIL")
         }
 
     }

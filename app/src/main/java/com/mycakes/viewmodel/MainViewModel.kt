@@ -1,31 +1,33 @@
 package com.mycakes.viewmodel
 
-import android.os.Handler
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import com.mycakes.data.model.Cake
+import com.mycakes.data.repository.CakeRepository
+import io.reactivex.disposables.CompositeDisposable
 import java.util.*
 
-class MainViewModel : ViewModel() {
+class MainViewModel constructor(private val cakeRepository: CakeRepository) : ViewModel() {
+    private val disposable = CompositeDisposable()
     fun fetchCakes() {
         loadingState.value = LoadingState.LOADING
-        Handler().postDelayed({
-            cakes.value = listOf(
-                Cake(
-                    "Lemon cheesecake", "Lemon cheesecake",
-                    "https://s3-eu-west-1.amazonaws.com/s3.mediafileserver.co.uk/carnation/WebFiles/RecipeImages/lemoncheesecake_lg.jpg"
-                ),
-                Cake(
-                    "Lemon cheesecake", "Lemon cheesecake",
-                    "https://s3-eu-west-1.amazonaws.com/s3.mediafileserver.co.uk/carnation/WebFiles/RecipeImages/lemoncheesecake_lg.jpg"
-                ),
-                Cake(
-                    "Lemon cheesecake", "Lemon cheesecake",
-                    "https://s3-eu-west-1.amazonaws.com/s3.mediafileserver.co.uk/carnation/WebFiles/RecipeImages/lemoncheesecake_lg.jpg"
-                )
-            )
-            loadingState.value = LoadingState.SUCCESS
-        }, 5000)
+        disposable.add(
+            cakeRepository.fetchCakes()
+                .subscribe({
+                    lastFetchedTime = Date()
+                    if (it.isEmpty()) {
+                        errorMessage.value = "No Cake found"
+                        loadingState.value = LoadingState.ERROR
+                    } else {
+                        cakes.value = it
+                        loadingState.value = LoadingState.SUCCESS
+                    }
+                }, {
+                    lastFetchedTime = Date()
+                    errorMessage.value = it.localizedMessage
+                    loadingState.value = LoadingState.ERROR
+                })
+        )
 
     }
 
@@ -42,5 +44,10 @@ class MainViewModel : ViewModel() {
         LOADING,
         SUCCESS,
         ERROR
+    }
+
+    override fun onCleared() {
+        disposable.dispose()
+        super.onCleared()
     }
 }

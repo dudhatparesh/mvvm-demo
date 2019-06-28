@@ -8,9 +8,12 @@ import androidx.lifecycle.ViewModelProviders
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.mycakes.R
 import com.mycakes.data.model.Cake
+import com.mycakes.data.remote.WebServices
+import com.mycakes.data.repository.CakeRepositoryImpl
 import com.mycakes.ui.adapter.CakeAdapter
 import com.mycakes.ui.adapter.listener.CakeClickListener
 import com.mycakes.viewmodel.MainViewModel
+import com.mycakes.viewmodel.factory.MainViewModelFactory
 import kotlinx.android.synthetic.main.activity_main.*
 
 
@@ -28,7 +31,8 @@ class MainActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
         setupRecyclerView()
-        viewModel = ViewModelProviders.of(this).get(MainViewModel::class.java)
+        viewModel = ViewModelProviders.of(this, MainViewModelFactory(CakeRepositoryImpl(WebServices.instance)))
+            .get(MainViewModel::class.java)
         viewModel.cakes.observe(this, Observer {
             cakeAdapter.cakes.clear()
             cakeAdapter.cakes.addAll(it)
@@ -45,7 +49,7 @@ class MainActivity : AppCompatActivity() {
                 MainViewModel.LoadingState.LOADING -> displayProgressbar()
                 MainViewModel.LoadingState.SUCCESS -> displayList()
                 MainViewModel.LoadingState.ERROR -> displayMessageContainer()
-                else-> displayMessageContainer()
+                else -> displayMessageContainer()
             }
         })
         if (viewModel.lastFetchedTime == null) {

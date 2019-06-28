@@ -1,6 +1,8 @@
 package com.mycakes.ui
 
 import android.os.Bundle
+import android.view.Menu
+import android.view.MenuItem
 import android.view.View
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.Observer
@@ -22,7 +24,7 @@ class MainActivity : AppCompatActivity() {
     lateinit var cakeAdapter: CakeAdapter
     private val cakeClickListener: CakeClickListener = object : CakeClickListener {
         override fun onClick(cake: Cake) {
-            //Display Cake Description
+
         }
 
     }
@@ -56,6 +58,10 @@ class MainActivity : AppCompatActivity() {
             viewModel.fetchCakes()
         }
 
+        btnRetry.setOnClickListener {
+            viewModel.fetchCakes()
+        }
+
     }
 
     private fun displayProgressbar() {
@@ -81,6 +87,23 @@ class MainActivity : AppCompatActivity() {
         rvCakes.layoutManager = LinearLayoutManager(this)
         cakeAdapter = CakeAdapter(mutableListOf(), cakeClickListener)
         rvCakes.adapter = cakeAdapter
+    }
+
+    override fun onCreateOptionsMenu(menu: Menu?): Boolean {
+        menuInflater.inflate(R.menu.activity_main, menu)
+        return true
+    }
+
+    override fun onOptionsItemSelected(item: MenuItem): Boolean {
+        return when (item.itemId) {
+            R.id.action_refresh -> {
+                viewModel.fetchCakes()
+                true
+            }
+            else -> super.onOptionsItemSelected(item)
+
+        }
+
     }
 
 }

@@ -5,6 +5,7 @@ import androidx.lifecycle.ViewModel
 import com.mycakes.data.model.Cake
 import com.mycakes.data.repository.CakeRepository
 import io.reactivex.disposables.CompositeDisposable
+import java.net.UnknownHostException
 import java.util.*
 
 class MainViewModel constructor(private val cakeRepository: CakeRepository) : ViewModel() {
@@ -24,7 +25,13 @@ class MainViewModel constructor(private val cakeRepository: CakeRepository) : Vi
                     }
                 }, {
                     lastFetchedTime = Date()
-                    errorMessage.value = it.localizedMessage
+
+                    it.printStackTrace()
+                    when (it) {
+                        is UnknownHostException -> errorMessage.value = "No Network"
+                        else -> errorMessage.value = it.localizedMessage
+                    }
+
                     loadingState.value = LoadingState.ERROR
                 })
         )

@@ -49,7 +49,7 @@
                 android:id="@+id/btnRetry"
                 android:background="@color/colorAccent"
                 android:textColor="@android:color/white"
-                tools:text="@string/retry"/>
+                android:text="@string/retry"/>
     </LinearLayout>
 
 </androidx.constraintlayout.widget.ConstraintLayout>

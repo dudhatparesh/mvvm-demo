@@ -53,8 +53,15 @@ dependencies {
     implementation 'io.reactivex.rxjava2:rxandroid:2.1.1'
     implementation 'io.reactivex.rxjava2:rxjava:2.2.8'
 
+    //LifeCycle Extensions
+    implementation 'androidx.lifecycle:lifecycle-extensions:2.0.0'
+
     testImplementation 'junit:junit:4.12'
     androidTestImplementation 'androidx.test:runner:1.2.0'
+    testImplementation 'android.arch.core:core-testing:1.1.1'
+    testImplementation "org.mockito:mockito-core:2.25.0"
+    testImplementation "io.mockk:mockk:1.9.3.kotlin12"
     androidTestImplementation 'androidx.test.espresso:espresso-core:3.2.0'
-    implementation 'androidx.lifecycle:lifecycle-extensions:2.0.0'
+
+
 }

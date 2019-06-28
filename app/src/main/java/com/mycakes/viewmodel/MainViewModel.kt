@@ -14,6 +14,9 @@ class MainViewModel constructor(private val cakeRepository: CakeRepository) : Vi
         loadingState.value = LoadingState.LOADING
         disposable.add(
             cakeRepository.fetchCakes()
+                .map { cakes ->
+                    cakes.distinct().sortedBy { cake -> cake.title }
+                }
                 .subscribe({
                     lastFetchedTime = Date()
                     if (it.isEmpty()) {

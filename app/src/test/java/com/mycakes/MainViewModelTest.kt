@@ -3,19 +3,20 @@ package com.mycakes
 import androidx.arch.core.executor.testing.InstantTaskExecutorRule
 import com.mycakes.data.model.Cake
 import com.mycakes.data.repository.CakeRepositoryImpl
+import com.mycakes.ui.activity.MainActivity
 import com.mycakes.viewmodel.MainViewModel
+import io.mockk.MockKAnnotations
+import io.mockk.every
+import io.mockk.impl.annotations.MockK
 import io.reactivex.Single
 import org.junit.Assert
+import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import org.junit.rules.TestRule
 import org.junit.runner.RunWith
 import org.junit.runners.BlockJUnit4ClassRunner
-import org.mockito.Mock
-import org.mockito.Mockito.`when`
-import org.mockito.MockitoAnnotations
-import java.lang.RuntimeException
 import java.net.UnknownHostException
 
 
@@ -27,14 +28,14 @@ class MainViewModelTest {
     @JvmField
     var rule: TestRule = InstantTaskExecutorRule()
 
-    @Mock
+    @MockK
     lateinit var cakeRepository: CakeRepositoryImpl
     lateinit var mainViewModel: MainViewModel
 
 
     @Before
     fun setup() {
-        MockitoAnnotations.initMocks(this)
+        MockKAnnotations.init(this)
         mainViewModel = MainViewModel(cakeRepository)
     }
 
@@ -49,7 +50,7 @@ class MainViewModelTest {
         //the last entry should come first
 
         val expectedCakes = listOf(Cake("Demo", "Demo", "Demo"), Cake("Demo 1", "Demo 1", "Demo 1"))
-        `when`(cakeRepository.fetchCakes()).thenReturn(Single.just(cakes))
+        every {cakeRepository.fetchCakes()} returns (Single.just(cakes))
 
         mainViewModel.fetchCakes()
 
@@ -61,7 +62,7 @@ class MainViewModelTest {
     @Test
     fun fetchCake_successEmptyCakeList() {
         val cakes = listOf<Cake>()
-        `when`(cakeRepository.fetchCakes()).thenReturn(Single.just(cakes))
+        every {cakeRepository.fetchCakes()} returns (Single.just(cakes))
 
         mainViewModel.fetchCakes()
 
@@ -73,7 +74,8 @@ class MainViewModelTest {
 
     @Test
     fun fetchCake_networkError() {
-        `when`(cakeRepository.fetchCakes()).thenReturn(Single.error(UnknownHostException("Abc")))
+
+        every {cakeRepository.fetchCakes()} returns (Single.error(UnknownHostException("Abc")))
 
         mainViewModel.fetchCakes()
 
@@ -85,12 +87,18 @@ class MainViewModelTest {
 
     @Test
     fun fetchCake_otherError() {
-        `when`(cakeRepository.fetchCakes()).thenReturn(Single.error(RuntimeException("Abc")))
+        every{cakeRepository.fetchCakes()} returns Single.error(RuntimeException("Abc"))
 
         mainViewModel.fetchCakes()
 
         Assert.assertEquals(null, mainViewModel.cakes.value)
         Assert.assertEquals(MainViewModel.LoadingState.ERROR, mainViewModel.loadingState.value)
         Assert.assertEquals("Abc", mainViewModel.errorMessage.value)
+    }
+
+    @Test
+    fun getActivityTest(){
+        val activityClass = mainViewModel.getActivity()
+        assertTrue(activityClass == MainActivity::class.java)
     }
 }

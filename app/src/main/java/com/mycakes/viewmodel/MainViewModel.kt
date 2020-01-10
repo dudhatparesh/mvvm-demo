@@ -16,28 +16,30 @@ class MainViewModel constructor(private val cakeRepository: CakeRepository) : Vi
         loadingState.value = LoadingState.LOADING
         disposable.add(
             cakeRepository.fetchCakes()
-                .map {
-                    cakes-> cakes.distinct().sortedBy { cake -> cake.title }
+                .map { cakes ->
+                    cakes.distinct()
                 }
                 .subscribe({
                     lastFetchedTime = Date()
                     if (it.isEmpty()) {
-                        errorMessage.value = "No Cake found"
-                        loadingState.value = LoadingState.ERROR
+
+                        loadingState.value = LoadingState.ERROR("No Cake found")
                     } else {
-                        cakes.value = it
-                        loadingState.value = LoadingState.SUCCESS
+
+                        loadingState.value = LoadingState.SUCCESS(it)
                     }
                 }, {
                     lastFetchedTime = Date()
 
                     it.printStackTrace()
-                    when (it) {
-                        is UnknownHostException -> errorMessage.value = "No Network"
-                        else -> errorMessage.value = it.localizedMessage
-                    }
+                    loadingState.value = LoadingState.ERROR(
+                        when (it) {
+                            is UnknownHostException -> "No Network"
+                            else -> it.localizedMessage
+                        }
+                    )
 
-                    loadingState.value = LoadingState.ERROR
+
                 })
         )
 
@@ -45,17 +47,12 @@ class MainViewModel constructor(private val cakeRepository: CakeRepository) : Vi
 
     var lastFetchedTime: Date? = null
 
-    val cakes: MutableLiveData<List<Cake>> = MutableLiveData()
-
-    val errorMessage: MutableLiveData<String> = MutableLiveData()
-
-
     val loadingState = MutableLiveData<LoadingState>()
 
-    enum class LoadingState {
-        LOADING,
-        SUCCESS,
-        ERROR
+    sealed class LoadingState {
+        object LOADING : LoadingState()
+        data class SUCCESS(val cakes: List<Cake>) : LoadingState()
+        data class ERROR(val message: String) : LoadingState()
     }
 
     override fun onCleared() {
@@ -63,7 +60,7 @@ class MainViewModel constructor(private val cakeRepository: CakeRepository) : Vi
         super.onCleared()
     }
 
-    fun getActivity(): Class<out Activity>{
+    fun getActivity(): Class<out Activity> {
         return MainActivity::class.java
     }
 }

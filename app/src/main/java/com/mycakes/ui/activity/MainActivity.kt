@@ -26,7 +26,7 @@ class MainActivity : AppCompatActivity() {
     private val cakeClickListener: CakeClickListener = object : CakeClickListener {
         override fun onClick(cake: Cake) {
             val cakeDetailDialog = CakeDetailDialog.instance(cake)
-            cakeDetailDialog.show(supportFragmentManager,"CAKE_DETAIL")
+            cakeDetailDialog.show(supportFragmentManager, "CAKE_DETAIL")
         }
 
     }
@@ -35,25 +35,21 @@ class MainActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
         setupRecyclerView()
-        viewModel = ViewModelProviders.of(this, MainViewModelFactory(CakeRepositoryImpl(WebServices.instance)))
+        viewModel = ViewModelProviders.of(
+            this,
+            MainViewModelFactory(CakeRepositoryImpl(WebServices.instance))
+        )
             .get(MainViewModel::class.java)
-        viewModel.cakes.observe(this, Observer {
-            cakeAdapter.cakes.clear()
-            cakeAdapter.cakes.addAll(it)
-            cakeAdapter.notifyDataSetChanged()
 
-        })
 
-        viewModel.errorMessage.observe(this, Observer {
-            tvMessage.text = it
-        })
+
 
         viewModel.loadingState.observe(this, Observer {
             when (it) {
-                MainViewModel.LoadingState.LOADING -> displayProgressbar()
-                MainViewModel.LoadingState.SUCCESS -> displayList()
-                MainViewModel.LoadingState.ERROR -> displayMessageContainer()
-                else -> displayMessageContainer()
+                is MainViewModel.LoadingState.LOADING -> displayProgressbar()
+                is MainViewModel.LoadingState.SUCCESS -> displayList(it.cakes)
+                is MainViewModel.LoadingState.ERROR -> displayMessageContainer(it.message)
+                else -> displayMessageContainer("Unknown Error")
             }
         })
         if (viewModel.lastFetchedTime == null) {
@@ -72,14 +68,17 @@ class MainActivity : AppCompatActivity() {
         llMessageContainer.visibility = View.GONE
     }
 
-    private fun displayMessageContainer() {
+    private fun displayMessageContainer(message: String) {
         llMessageContainer.visibility = View.VISIBLE
         rvCakes.visibility = View.GONE
         progressbar.visibility = View.GONE
+        tvMessage.text = message
     }
 
-    private fun displayList() {
-
+    private fun displayList(cakes: List<Cake>) {
+        cakeAdapter.cakes.clear()
+        cakeAdapter.cakes.addAll(cakes)
+        cakeAdapter.notifyDataSetChanged()
         llMessageContainer.visibility = View.GONE
         rvCakes.visibility = View.VISIBLE
         progressbar.visibility = View.GONE

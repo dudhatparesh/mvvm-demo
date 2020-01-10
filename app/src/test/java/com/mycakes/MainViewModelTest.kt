@@ -30,6 +30,8 @@ class MainViewModelTest {
 
     @MockK
     lateinit var cakeRepository: CakeRepositoryImpl
+
+
     lateinit var mainViewModel: MainViewModel
 
 
@@ -41,63 +43,78 @@ class MainViewModelTest {
 
     @Test
     fun fetchCake_successWithOrderedAndDistinct() {
+
+        //When
         val cakes = listOf(
             Cake("Demo 1", "Demo 1", "Demo 1"), Cake("Demo 1", "Demo 1", "Demo 1"),
             Cake("Demo", "Demo", "Demo")
         )
+        every { cakeRepository.fetchCakes() } returns (Single.just(cakes))
 
         //Here in expected output we have removed duplicate entry and based on title sorting
         //the last entry should come first
 
-        val expectedCakes = listOf(Cake("Demo", "Demo", "Demo"), Cake("Demo 1", "Demo 1", "Demo 1"))
-        every {cakeRepository.fetchCakes()} returns (Single.just(cakes))
+
+        //Then
 
         mainViewModel.fetchCakes()
 
-        Assert.assertEquals(expectedCakes, mainViewModel.cakes.value)
-        Assert.assertEquals(MainViewModel.LoadingState.SUCCESS, mainViewModel.loadingState.value)
-        Assert.assertEquals(null, mainViewModel.errorMessage.value)
+
+        //Verify
+        val expectedCakes = listOf(Cake("Demo 1", "Demo 1", "Demo 1"), Cake("Demo", "Demo", "Demo"))
+
+        Assert.assertEquals(
+            expectedCakes,
+            (mainViewModel.loadingState.value as MainViewModel.LoadingState.SUCCESS).cakes
+        )
     }
 
     @Test
     fun fetchCake_successEmptyCakeList() {
-        val cakes = listOf<Cake>()
-        every {cakeRepository.fetchCakes()} returns (Single.just(cakes))
 
+        //When
+        val cakes = listOf<Cake>()
+        every { cakeRepository.fetchCakes() } returns (Single.just(cakes))
+
+
+        //Then
         mainViewModel.fetchCakes()
 
-        Assert.assertEquals(null, mainViewModel.cakes.value)
-        Assert.assertEquals(MainViewModel.LoadingState.ERROR, mainViewModel.loadingState.value)
-        Assert.assertEquals("No Cake found", mainViewModel.errorMessage.value)
+        //Verify
+        Assert.assertEquals(
+            "No Cake found",
+            (mainViewModel.loadingState.value as MainViewModel.LoadingState.ERROR).message
+        )
     }
 
 
     @Test
     fun fetchCake_networkError() {
 
-        every {cakeRepository.fetchCakes()} returns (Single.error(UnknownHostException("Abc")))
+        every { cakeRepository.fetchCakes() } returns (Single.error(UnknownHostException("Abc")))
 
         mainViewModel.fetchCakes()
-
-        Assert.assertEquals(null, mainViewModel.cakes.value)
-        Assert.assertEquals(MainViewModel.LoadingState.ERROR, mainViewModel.loadingState.value)
-        Assert.assertEquals("No Network", mainViewModel.errorMessage.value)
+        Assert.assertEquals(
+            "No Network",
+            (mainViewModel.loadingState.value as MainViewModel.LoadingState.ERROR).message
+        )
     }
 
 
     @Test
     fun fetchCake_otherError() {
-        every{cakeRepository.fetchCakes()} returns Single.error(RuntimeException("Abc"))
+        every { cakeRepository.fetchCakes() } returns Single.error(RuntimeException("Abc"))
 
         mainViewModel.fetchCakes()
 
-        Assert.assertEquals(null, mainViewModel.cakes.value)
-        Assert.assertEquals(MainViewModel.LoadingState.ERROR, mainViewModel.loadingState.value)
-        Assert.assertEquals("Abc", mainViewModel.errorMessage.value)
+        Assert.assertEquals(
+            "Abc",
+            (mainViewModel.loadingState.value as MainViewModel.LoadingState.ERROR).message
+        )
     }
 
     @Test
-    fun getActivityTest(){
+    fun getActivityTest() {
         val activityClass = mainViewModel.getActivity()
         assertTrue(activityClass == MainActivity::class.java)
     }
